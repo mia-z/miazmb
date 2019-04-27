@@ -1,0 +1,13 @@
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-form {
+    margin-top: 400px;
+    max-width: 500px;
+}
+
+#server-list, #item-search, #data-center-list {
+    margin: 10px;
+}

@@ -1,0 +1,26 @@
+{
+  "name": "miazmb",
+  "version": "1.0.0",
+  "description": "a cuter marketboard for ff14",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mia-z/miazmb.git"
+  },
+  "keywords": [
+    "ff14",
+    "square"
+  ],
+  "author": "miaz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mia-z/miazmb/issues"
+  },
+  "homepage": "https://github.com/mia-z/miazmb#readme",
+  "dependencies": {
+    "useragent": "^2.3.0"
+  }
+}
