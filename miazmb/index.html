@@ -22,6 +22,7 @@
         <main>
             <div class="container">
                 <div class="container search-form">
+                    <div id="debug-box"></div>
                     <select class="form-control" id="data-center-list">
                         <option selected disabled hidden>Select Data Center</option>
                         <option value="Aether">Aether</option>
@@ -34,10 +35,12 @@
                         <option value="Primal">Primal</option>
                     </select>
                     <select disabled class="form-control" id="server-list">
-                        <option selected disabled hidden>Select Server</option>
-                        <!--Servers go here-->
+                        <option selected disabled hidden>Select Data Center first</option>
                     </select>
                     <input typ="text" class="form-control" id="item-search">
+                    <div id="search-results">
+                        <!--Result cards in here-->
+                    </div>
                 </div>
             </div>
         </main>

@@ -4,10 +4,30 @@ main {
 }
 
 .search-form {
-    margin-top: 400px;
-    max-width: 500px;
+    margin-top: 50px;
 }
 
 #server-list, #item-search, #data-center-list {
-    margin: 10px;
+    max-width: 500px;
+    margin: 3px auto;
+}
+
+#search-results {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.card {
+    margin: 5px;
+}
+
+.card-img-top {
+    width: 50px;
+    margin: 5px auto;
+}
+
+#debug-box {
+    position: absolute;
+    top: 0px;
+    left: 0px;
 }
