@@ -1,6 +1,6 @@
 $(document).ready(() => {
     createDb(count);
-    $("#debug-box").append("<span>Querying api.</span>");
+    $("#debug-box").append("<span>Caching items from ffxivapi.</span>");
     $("#debug-box").append("<span id='amt-queried'></span>");
     $("#data-center-list")[0].selectedIndex = 0;
     $("#server-list")[0].selectedIndex = 0;
@@ -25,7 +25,7 @@ var timer = setInterval(() => {
 fetch(baseString+"/servers/dc")
     .then(res => res.json())
     .then(res => {
-        assignDropDowns(res);
+        dataCentersAndServers = res;
     });
 
 function createDb(count) {
@@ -38,7 +38,7 @@ function createDb(count) {
                 createDb(count);
                 if (count == 97) { 
                     clearTimeout(timer); 
-                    $("#debug-box").append("<span> Found " + itemDb.length + " items in " + createDbTime + "ms" + "</span>");
+                    $("#debug-box").append("<span> Cache completed in " + createDbTime + "ms" + "</span>");
                     $("#item-search").prop("placeholder", "Select a datacenter/server");
                 }
             })
@@ -70,7 +70,7 @@ $("#item-search").on("input", function(evt) {
     searchBlocker = setTimeout(() => {
         createResults($("#item-search").val().toLowerCase());
     }, 500);
-    //createResults($(this).val().toLowerCase());
+    //createResults($(this).val().toLowerCase()); this method makes instant calls and messes up search
 });
 
 async function createResults(query) {
@@ -109,9 +109,15 @@ async function createCard(server, item) {
         });
 }
 
-async function createModal(item, data, itemDetails) {
+async function createModal(item, priceHistory, itemDetails) {
     console.log(item);
-    console.log(data);
+    for (let x = 0; x < priceHistory.Prices.length; x++) {
+        priceHistory.Prices[x]["Added"] = convertEpoch(priceHistory.Prices[x]["Added"]);
+    }
+    for (let x = 0; x < priceHistory.History.length; x++) {
+        priceHistory.History[x]["Added"] = convertEpoch(priceHistory.History[x]["Added"]);
+    }
+    console.log(priceHistory);
     console.log(itemDetails);
     $(".modal-box").append("" +
     "<div class='modal fade bd-example-modal-lg' tabindex='-1' role='dialog' aria-labelledby='myLargeModalLabel' aria-hidden='true'>" +
@@ -122,7 +128,8 @@ async function createModal(item, data, itemDetails) {
                     "<button type='button' class='btn btn-primary' data-dismiss='modal' aria-label='Close'>X</button>" +
                 "</div>" +
                 "<div class='modal-body'>" +
-                    "<p>" + itemDetails["Description"] + "</p>" +
+                    "<p>" + itemDetails.Description + "</p>" +
+                    "<canvas id='price-chart' width='400' height='200'></canvas>" +
                 "</div>" +
             "</div>" +
         "</div>" +
@@ -131,11 +138,27 @@ async function createModal(item, data, itemDetails) {
     $(".modal").on("hidden.bs.modal", () => {
         $(".modal-box").empty();
     });
+    createChart($("#price-chart"), priceHistory.History);
 }
 
-async function assignDropDowns(response) {
-    dataCentersAndServers = await response;
-    console.log(dataCentersAndServers);
+function createChart(canvas, history) {
+    console.log(history);
+    let dates = [];
+    let prices = [];
+    for (let x = 0; x < 10; x++) {
+        dates.push(history[x]["Added"].toLocaleDateString("en-US"));
+        prices.push(history[x]["PricePerUnit"]);
+    }
+    let c = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Price in Gil',
+                data: prices,
+            }]
+        }
+    });
 }
 
 function populateDropDown(source) {
