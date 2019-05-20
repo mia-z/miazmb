@@ -28,13 +28,13 @@ fetch(baseString+"/servers/dc")
         dataCentersAndServers = res;
     });
 
-function createDb(count) {
+async function createDb(count) {
     if (count < 97) {
-        fetch(baseString+"/search?indexes=item&filters=ItemSearchCategory.ID>=9&page="+count)
+        return await fetch(baseString+"/search?indexes=item&filters=ItemSearchCategory.ID>=9&page="+count)
             .then(res => res.json())
             .then(res => {
                 count++;
-                populateDb(res["Results"], count);
+                populateDbAsync(res["Results"], count);
                 createDb(count);
                 if (count == 97) { 
                     clearTimeout(timer); 
@@ -180,7 +180,7 @@ function populateDb(data, count) {
     });
 }
 
-async function populateDbAsync(data, count) { //this verbose method CONSIDERABLY slows the app down :(
+async function populateDbAsync(data, count) { //still testing my async knowledge here
     let baseH = count - 1;
     baseH = baseH * 100;
     await data.forEach(element => {
