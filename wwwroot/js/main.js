@@ -170,7 +170,17 @@ function populateDropDown(source) {
     });
 }
 
-async function populateDb(data, count) {
+function populateDb(data, count) {
+    //let baseH = count - 1;
+    //baseH = baseH * 100;
+    data.forEach(element => {
+        //baseH++;
+        //$("#amt-queried").text(" Queried " + baseH + " items.");
+        itemDb.push(element);
+    });
+}
+
+async function populateDbAsync(data, count) { //this verbose method CONSIDERABLY slows the app down :(
     let baseH = count - 1;
     baseH = baseH * 100;
     await data.forEach(element => {
