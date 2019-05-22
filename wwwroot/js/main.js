@@ -1,7 +1,7 @@
 $(document).ready(() => {
     createDb(count);
-    $("#debug-box").append("<span>Caching items from ffxivapi.</span>");
-    $("#debug-box").append("<span id='amt-queried'></span>");
+    //$("#debug-box").append("<span>Caching items from ffxivapi.</span>");
+    //$("#debug-box").append("<span id='amt-queried'></span>");
     $("#data-center-list")[0].selectedIndex = 0;
     $("#server-list")[0].selectedIndex = 0;
     $("#item-search").prop("disabled", true);
@@ -13,7 +13,7 @@ const baseString = "https://xivapi.com"
 
 var createDbTime = 0;
 var count = 0;
-var itemDb = [];
+var itemDb;
 var dataCentersAndServers = [];
 
 var searchBlocker;
@@ -29,26 +29,33 @@ fetch(baseString+"/servers/dc")
     });
 
 async function createDb(count) {
-    if (count < 97) {
-        return await fetch(baseString+"/search?indexes=item&filters=ItemSearchCategory.ID>=9&page="+count)
-            .then(res => res.json())
-            .then(res => {
-                count++;
-                populateDbAsync(res["Results"], count);
-                createDb(count);
-                if (count == 97) { 
-                    clearTimeout(timer); 
-                    $("#debug-box").append("<span> Cache completed in " + createDbTime + "ms" + "</span>");
-                    $("#item-search").prop("placeholder", "Select a datacenter/server");
-                }
-            })
-            .catch(err => {
-                console.log("failed call: " + count + ", with error: " + err);
-            })
-    }
-    if (count == 97) {
+    $.getJSON("db.json", result => {
+        itemDb = result;
         console.log(itemDb);
-    }
+        $("#item-search").prop("placeholder", "Select a datacenter/server");
+        clearTimeout(timer);
+        $("#debug-box").append("<span> DB loaded in in " + createDbTime + "ms" + "</span>");
+    });
+    //if (count < 97) {
+    //    return await fetch(baseString+"/search?indexes=item&filters=ItemSearchCategory.ID>=9&page="+count)
+    //        .then(res => res.json())
+    //        .then(res => {
+    //            count++;
+    //            populateDbAsync(res["Results"], count);
+    //            createDb(count);
+    //            if (count == 97) { 
+    //                clearTimeout(timer); 
+    //                $("#debug-box").append("<span> Cache completed in " + createDbTime + "ms" + "</span>");
+    //                $("#item-search").prop("placeholder", "Select a datacenter/server");
+    //            }
+    //        })
+    //        .catch(err => {
+    //            console.log("failed call: " + count + ", with error: " + err);
+    //        })
+    //}
+    //if (count == 97) {
+    //    console.log(itemDb);
+    //}
 }
 
 $("#data-center-list").on("change", function(evt) {
@@ -171,11 +178,7 @@ function populateDropDown(source) {
 }
 
 function populateDb(data, count) {
-    //let baseH = count - 1;
-    //baseH = baseH * 100;
     data.forEach(element => {
-        //baseH++;
-        //$("#amt-queried").text(" Queried " + baseH + " items.");
         itemDb.push(element);
     });
 }

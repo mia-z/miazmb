@@ -4,7 +4,7 @@
   "description": "a cuter marketboard for ff14",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/mia-z/miazmb#readme",
   "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "^4.17.0",
     "useragent": "^2.3.0"
   }
 }
