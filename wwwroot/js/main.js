@@ -83,7 +83,7 @@ $("#item-search").on("input", function(evt) {
 async function createResults(query) {
     var results = itemDb.filter(n => n.Name.toLowerCase().includes(query));
     $("#search-results").empty();
-    let max = results.length > 10 ? 10 : results.length;
+    let max = results.length > 20 ? 20 : results.length;
     for (let c = 0; c < max; c++) {
         createCard($("#server-list").val(), results[c]);
     }
