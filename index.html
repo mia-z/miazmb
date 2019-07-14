@@ -12,11 +12,14 @@
         <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.14.2/dist/bootstrap-table.min.css">
         <script src="https://unpkg.com/bootstrap-table@1.14.2/dist/bootstrap-table.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.js"></script>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
 
         <!--Local files-->
         <link rel="stylesheet" href="/miazmb/wwwroot/css/main.css">
         <link rel="stylesheet" href="/wwwroot/css/main.css">
-
 
         <title>Miaz FFXIV MB</title>
     </head>
@@ -24,31 +27,25 @@
         <header>
 
         </header>
-        <main>
+        <main id="main">
             <div class="container">
+                <div id="debug-box">
+                    <button class="btn btn-primary" id="debug-box-toggle">SHOW DEBUG</button>
+                    <div id="debug-box-controls"></div>
+                </div>
                 <div class="container search-form">
-                    <div id="debug-box"></div>
-                    <select class="form-control" id="data-center-list">
-                        <option selected disabled hidden>Select Data Center</option>
-                        <option value="Aether">Aether</option>
-                        <option value="Chaos">Chaos</option>
-                        <option value="Crystal">Crystal</option>
-                        <option value="Elemental">Elemental</option>
-                        <option value="Gaia">Gaia</option>
-                        <option value="Light">Light</option>
-                        <option value="Mana">Mana</option>
-                        <option value="Primal">Primal</option>
-                    </select>
-                    <select disabled class="form-control" id="server-list">
-                        <option selected disabled hidden>Select Data Center first</option>
-                    </select>
-                    <input typ="text" class="form-control" id="item-search">
+                    <div class="modal fade" id="server-modal-container">
+                    </div>
+                    <div class="container">
+                        <h5 class="mx-auto"> Searching Market Board of: <span id="server-title"></span></h5>
+                        <input type="text" class="form-control" id="item-search" placeholder="Type to begin searching">
+                    </div>
                     <div id="search-results">
                         <!--Result cards in here-->
                     </div>
                 </div>
             </div>
-            <div class="modal-box">
+            <div class="modal fade" id="search-modal-container">
                 <!--modal goes in here-->
             </div>
         </main>

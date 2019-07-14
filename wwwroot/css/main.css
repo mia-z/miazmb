@@ -40,3 +40,8 @@ main {
 .card-animation:hover {
     box-shadow: inset -0.7em -0.7em  grey;
 }
+
+.container {
+    display: flex;
+    flex-direction: column;
+}
