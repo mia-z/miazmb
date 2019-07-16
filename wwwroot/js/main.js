@@ -9,6 +9,7 @@ $(document).ready(() => {
 });
 
 const baseString = "https://xivapi.com"
+const key = "?private_key=a92ca6ab9eab4f259ada7d70beb4bd2b6e545c1969fe4314bdf40f1dabd46b9e";
 
 var createDbTime = 0;
 var count = 0;
@@ -16,6 +17,8 @@ var itemDb;
 var dataCentersAndServers = [];
 var prefs = [];
 var serverPicked = true;
+
+var omittedCount = 0;
 
 var searchBlocker;
 
@@ -60,38 +63,46 @@ $("#item-search").on("input", function(evt) {
 });
 
 async function createResults(query) {
-    var results = await itemDb.filter(n => n.Name.toLowerCase().includes(query));
+    var results = itemDb.filter(n => n.Name.toLowerCase().includes(query));
+    console.log(results);
     $("#search-results").empty();
     let max = results.length > 20 ? 20 : results.length;
     for (let c = 0; c < max; c++) {
-        createCard(Cookies.get("homeServer"), results[c]);
+        await createCard(Cookies.get("homeServer"), results[c]);
     }
+    console.log(omittedCount);
+    omittedCount = 0;
 }
 
 async function createCard(server, item) {
-    await fetch(baseString+"/market/" + server + "/item/" + item.ID)
+    await fetch(baseString+"/market/" + server + "/item/" + item.ID + key)
         .then(data => data.json())
         .then((data) => {
-            console.log("found " + data);
-            $("#search-results").append(
-                "<div class='card card-animation' style='width: 15rem;' id='card-item-"+ item.ID + "'>" +
-                    "<img class='card-img-top' src='" + baseString + item.Icon + "' alt='Card image top'>" +
-                        "<div class='card-body'>" +
-                        "<h5 class='card-title'>" + item.Name + "</h5>" +
-                        "<p class='card-text'>Price: " + data["Prices"][0]["PricePerUnit"] + " gil</p>" +
-                    "</div>" +
-                "</div>");
-            $("#card-item-"+item.ID).on("click", () => {
-                fetch(baseString + "/item/" + item.ID)
-                    .then(res => res.json())
-                    .then(res => {
-                        createModal(item, data, res);
-                    });
-            });
+            console.log(data);
+            if (data["History"].length < 1) {
+                omittedCount++;
+            } else {
+                $("#search-results").append(
+                    "<div class='card card-animation' style='width: 15rem;' id='card-item-"+ item.ID + "'>" +
+                        "<img class='card-img-top' src='" + baseString + item.Icon + "' alt='Card image top'>" +
+                            "<div class='card-body'>" +
+                            "<h5 class='card-title'>" + item.Name + "</h5>" +
+                            "<p class='card-text'>Price: " + data["Prices"][0]["PricePerUnit"] + " gil</p>" +
+                        "</div>" +
+                    "</div>");
+                $("#card-item-"+item.ID).on("click", () => {
+                    fetch(baseString + "/item/" + item.ID)
+                        .then(res => res.json())
+                        .then(res => {
+                            createModal(item, data, res);
+                            console.log(res);
+                        });
+                });
+            }
         })
-        .catch(err => {
-            console.log("failed @ " + baseString+"/market/" + server + "/item/" + item.ID);
-            console.log("reason: " + err)
+        .catch((err) => {
+            console.log("failed @ " + baseString+"/market/" + "cerberus" + "/item/" + item.ID);
+            console.log("reason: " + err);
         });
 }
 
