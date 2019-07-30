@@ -18,9 +18,15 @@ var dataCentersAndServers = [];
 var prefs = [];
 var serverPicked = true;
 
+var allGraph = true;
+var nqGraph = false;
+var hqGraph = false;
+
 var omittedCount = 0;
 
 var searchBlocker;
+
+var priceChart;
 
 var timer = setInterval(() => {
     createDbTime++;
@@ -48,6 +54,10 @@ async function createDb(count) {
         $("#debug-select-server-cookie").on("click", (evt) => {
             firstTimeModal();
         });
+        $("#change-server-link").on("click", (evt) => {
+            Cookies.remove("homeServer");
+            firstTimeModal();
+        });
         firstTimeModal();
     });
 
@@ -66,9 +76,10 @@ async function createResults(query) {
     var results = itemDb.filter(n => n.Name.toLowerCase().includes(query));
     console.log(results);
     $("#search-results").empty();
-    let max = results.length > 20 ? 20 : results.length;
+    console.log(results.length);
+    let max = results.length > 20 ? 50 : results.length;
     for (let c = 0; c < max; c++) {
-        await createCard(Cookies.get("homeServer"), results[c]);
+        createCard(Cookies.get("homeServer"), results[c]);
     }
     console.log(omittedCount);
     omittedCount = 0;
@@ -109,12 +120,29 @@ async function createCard(server, item) {
 async function createModal(item, priceHistory, itemDetails) {
     let prices = [];
     let dates = [];
+    let nqPrices = [];
+    let hqPrices = [];
+
+    let currentResultsAmount = 5;
+
+    allGraph = true;
+    nqGraph = false;
+    hqGraph = false;
+
     //for (let x = priceHistory.Prices.length; x > 1; x--) {
     //    prices.push(convertEpoch(priceHistory.Prices[x]["Added"]));
     //}
+    
     for (let x = 0; x < priceHistory.History.length; x++) {
-        dates.push(convertEpoch(priceHistory.History[x]["Added"]));
+        dates.push(convertEpoch(priceHistory.History[x]["PurchaseDate"]));
         prices.push(priceHistory.History[x]["PricePerUnit"]);
+        if (priceHistory.History[x]["IsHQ"]) {
+            hqPrices.push(priceHistory.History[x]["PricePerUnit"]);
+            nqPrices.push(null);
+        } else {
+            nqPrices.push(priceHistory.History[x]["PricePerUnit"]);
+            hqPrices.push(null);
+        }
     }
     $("#search-modal-container").append("" +
         "<div class='modal-dialog modal-lg' tabindex='-1' role='dialog' aria-labelledby='largeModal' aria-hidden='true'>" +
@@ -127,15 +155,26 @@ async function createModal(item, priceHistory, itemDetails) {
                     "<p>" + itemDetails.Description + "</p>" +
                     "<canvas id='price-chart' width='400' height='200'></canvas>" +
                     "<p>Amount of results to show</p>" +
-                    "<div class='btn-group btn-group-toggle btn-block' data-toggle='buttons'>" +
-                        "<label class='btn btn-secondary mx-auto active' id='5-prices'>" +
+                    "<div class='btn-group btn-group-toggle btn-block' role='group' data-toggle='buttons'>" +
+                        "<label class='btn btn-success mw-33 active' id='05-prices'>" +
                             "<input type='radio' name='options' checked> 5" +
                         "</label>" +
-                        "<label class='btn btn-secondary' id='15-prices'>" +
+                        "<label class='btn btn-secondary mw-33' id='15-prices'>" +
                             "<input type='radio' name='options'> 15" +
                         "</label>" +
-                        "<label class='btn btn-secondary' id='25-prices'>" +
+                        "<label class='btn btn-secondary mw-33' id='25-prices'>" +
                             "<input type='radio' name='options'> 25" +
+                        "</label>" +
+                    "</div>" +
+                    "<div class='btn-group btn-group-toggle btn-block' role='group' data-toggle='buttons'>" +
+                        "<label class='btn btn-success mw-33' id='items-all'>" +
+                            "<input type='checkbox'>All items" +
+                        "</label>" +
+                        "<label class='btn btn-secondary mw-33' id='items-nq'>" +
+                            "<input type='checkbox'>NQ only" +
+                        "</label>" +
+                        "<label class='btn btn-secondary mw-33' id='items-hq'>" +
+                            "<input type='checkbox'>HQ only" +
                         "</label>" +
                     "</div>" +
                     "<hr>" +
@@ -146,39 +185,92 @@ async function createModal(item, priceHistory, itemDetails) {
     $("#search-modal-container").on("hidden.bs.modal", () => {
         $("#search-modal-container").empty();
     });
-    $("#5-prices").on("click", (evt) => { 
+
+    $("[id$=-prices]").on("click", async (evt) => { 
         $("#price-chart").empty();
-        createChart($("#price-chart"), dates, prices, 5);
+        colourSetter(evt.target.id.substring(0, 2));
+        currentResultsAmount = Number(evt.target.id.substring(0, 2));
+        updateChart(priceChart, dates, prices, nqPrices, hqPrices, currentResultsAmount);
     });
-    $("#15-prices").on("click", (evt) => { 
-        $("#price-chart").empty();
-        createChart($("#price-chart"), dates, prices, 15);
+
+    $("[id^=items-]").on("click", (evt) => {
+        switch(evt.target.id.substring(evt.target.id.length-2, evt.target.id.length)) {
+            case "ll": allGraph = allGraph === true ? false : true; break;
+            case "nq": nqGraph = nqGraph === true ? false : true; break;
+            case "hq": hqGraph = hqGraph === true ? false : true; break;
+            default: break;
+        }
+        if (evt.target.classList.contains("btn-success")) {
+            evt.target.classList.remove("btn-success");
+            evt.target.classList.add("btn-secondary");
+        } else {
+            evt.target.classList.remove("btn-secondary");
+            evt.target.classList.add("btn-success");
+        }
+        updateChart(priceChart, dates, prices, nqPrices, hqPrices, currentResultsAmount);
     });
-    $("#25-prices").on("click", (evt) => { 
-        $("#price-chart").empty();
-        createChart($("#price-chart"), dates, prices, 25);
+    priceChart = new Chart($("#price-chart"), {
+        type: "line",
+        data: { 
+            labels: null,
+            datasets: [{
+                //graph 1
+            },{
+                //graph 2
+            },{
+                //graph 3
+            }]
+         }
     });
-    createChart($("#price-chart"), dates, prices, 5);
+    updateChart(priceChart, dates, prices, nqPrices, hqPrices, currentResultsAmount);
 }
 
-function createChart(canvas, dates, prices, max) {
-    //console.log(history);
+function updateChart(pc, dates, prices, nqp, hqp, max) {
     let tempDates = [];
     let tempPrices = [];
-    for (let x = max; x > 0; x--) {
+    let tempNq = [];
+    let tempHq = [];
+    let adjustedMax;
+    console.log(dates.length);
+    if (max > dates.length) { adjustedMax = dates.length; } 
+        else { adjustedMax = max }
+    console.log(adjustedMax);
+    for (let x = adjustedMax; x > 0; x--) {
+        console.log(x);
         tempDates.push(dates[x].toLocaleDateString("en-US"));
         tempPrices.push(prices[x]);
+        tempNq.push(nqp[x]);
+        tempHq.push(hqp[x]);
     }
-    let c = new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels: tempDates,
-            datasets: [{
-                label: 'Price in Gil',
-                data: tempPrices,
-            }]
-        }
-    });
+
+    if (!allGraph) { tempPrices = []; }
+    if (!nqGraph) { tempNq = []; }
+    if (!hqGraph) { tempHq = []; }
+
+    pc.data.labels = tempDates;
+    pc.data.datasets = [{
+            label: 'Price in Gil',
+            data: tempPrices,
+            backgroundColor: "Red",
+            fill: false
+        }, {
+            label: "NQ",
+            data: tempNq,
+            backgroundColor: "Green",
+            fill: false
+        }, {
+            label: "HQ",
+            data: tempHq,
+            backgroundColor: "Blue",
+            fill: false
+        }];
+    console.log(tempPrices);
+    console.log(tempNq);
+    console.log(tempHq);
+    console.log(allGraph, nqGraph, hqGraph);
+    console.log(pc.data.datasets);
+
+    pc.update();
 }
 
 function populateDropDown(source) {
@@ -236,7 +328,7 @@ function firstTimeModal() {
 
             $("#btn-save-server").on("click", (evt) => {
                 Cookies.set("homeServer", $("#server-list").val());
-                $("#debug-server").html("Using server: " + Cookies.get("homeServer"));
+                $("#debug-server").html("Using server: " + Cookies.get("homeServer") + "<a id='change-server-link'> (Change?)</a>");
                 $("#server-modal-container").modal("hide");
             });
 
@@ -260,4 +352,35 @@ function firstTimeModal() {
 //helper functions
 function convertEpoch(epochTime) {
     return new Date(epochTime * 1000);
+}
+
+async function offThreadChecker(e) {
+    return await e.checked == true ? true : false;
+}
+
+function colourSetter(x) {
+    $("#05-prices")[0].classList.remove("btn-secondary");
+    $("#15-prices")[0].classList.remove("btn-secondary");
+    $("#25-prices")[0].classList.remove("btn-secondary");
+    $("#05-prices")[0].classList.remove("btn-success");
+    $("#15-prices")[0].classList.remove("btn-success");
+    $("#25-prices")[0].classList.remove("btn-success");
+    switch(Number(x)) {
+        case 05: 
+            $("#05-prices")[0].classList.add("btn-success");
+            $("#15-prices")[0].classList.add("btn-secondary");
+            $("#25-prices")[0].classList.add("btn-secondary");
+            break;
+        case 15: 
+            $("#05-prices")[0].classList.add("btn-secondary");
+            $("#15-prices")[0].classList.add("btn-success");
+            $("#25-prices")[0].classList.add("btn-secondary");
+            break;
+        case 25: 
+            $("#05-prices")[0].classList.add("btn-secondary");
+            $("#15-prices")[0].classList.add("btn-secondary");
+            $("#25-prices")[0].classList.add("btn-success");
+            break;
+        default: break; //should never hit this anyway hehe
+    }
 }

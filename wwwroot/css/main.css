@@ -45,3 +45,7 @@ main {
     display: flex;
     flex-direction: column;
 }
+
+.mw-33 {
+    min-width: 33.30%;
+}
